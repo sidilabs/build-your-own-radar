@@ -5,6 +5,7 @@ const path = require('path')
 const buildPath = path.join(__dirname, './dist')
 const args = require('yargs').argv
 
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const postcssPresetEnv = require('postcss-preset-env')
@@ -29,6 +30,9 @@ if (isDev) {
 
 const plugins = [
   new MiniCssExtractPlugin({ filename: '[name].[hash].css' }),
+  new CopyWebpackPlugin([
+    { context: './radars/', from: '**/*.csv', to: './radars' }
+  ]),
   new HtmlWebpackPlugin({
     template: './src/index.html',
     chunks: ['main'],
@@ -59,6 +63,7 @@ module.exports = {
     main: main,
     common: common
   },
+
   node: {
     fs: 'empty',
     net: 'empty',
@@ -94,11 +99,11 @@ module.exports = {
         }, 'sass-loader']
       },
       {
-        test: /\.(eot|svg|ttf|woff|woff2)$/,
+        test: /\.(eot|svg|ttf|woff|woff2)$/i,
         loader: 'file-loader?name=images/[name].[ext]'
       },
       {
-        test: /\.(png|jpg|ico)$/,
+        test: /\.(png|jpg|ico)$/i,
         exclude: /node_modules/,
         use: [{ loader: 'file-loader?name=images/[name].[ext]&context=./src/images' }]
       },
