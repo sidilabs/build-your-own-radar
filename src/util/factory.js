@@ -207,10 +207,10 @@ const GoogleSheetInput = function () {
     var queryParams = queryString ? QueryParams(queryString[0]) : {}
 
     if(queryParams && queryParams.sheetId) {
-      domainName = 'localhost:8080'
-      queryParams.sheetId = 'http://localhost:8080/radars/'.concat(queryParams.sheetId).concat('.csv')
+      domainName = 'techradar.gtcloud.net'
+      queryParams.sheetId = 'http://techradar.gtcloud.net/radars/'.concat(queryParams.sheetId).concat('.csv')
     }
-    
+
     if (domainName && queryParams.sheetId.endsWith('csv')) {
       sheet = CSVDocument(queryParams.sheetId)
       sheet.init().build()
@@ -304,8 +304,6 @@ function plotForm (content) {
   var datalist = form.append('datalist')
     .attr('id', 'radars')
 
-  //datalist.append('option').attr('value', 'http://localhost:8080/radars/radar.csv').attr('label', 'PRIMEIRA EDIÇÃO')
-  //datalist.append('option').attr('value', 'http://localhost:8080/radars/radar2.csv').attr('label', 'SEGUNDA EDIÇÃO')
   datalist.append('option').attr('value', 'april-2021')
 
   form.append('button')
