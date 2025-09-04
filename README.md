@@ -1,8 +1,6 @@
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/thoughtworks/build-your-own-radar?sort=semver)](https://github.com/thoughtworks/build-your-own-radar/releases/latest)
 [![Thoughtworks](https://circleci.com/gh/thoughtworks/build-your-own-radar.svg?style=shield)](https://circleci.com/gh/thoughtworks/build-your-own-radar)
 [![Stars](https://badgen.net/github/stars/thoughtworks/build-your-own-radar)](https://github.com/thoughtworks/build-your-own-radar)
-[![dependencies Status](https://david-dm.org/thoughtworks/build-your-own-radar/status.svg)](https://david-dm.org/thoughtworks/build-your-own-radar)
-[![devDependencies Status](https://david-dm.org/thoughtworks/build-your-own-radar/dev-status.svg)](https://david-dm.org/thoughtworks/build-your-own-radar?type=dev)
-[![peerDependencies Status](https://david-dm.org/thoughtworks/build-your-own-radar/peer-status.svg)](https://david-dm.org/thoughtworks/build-your-own-radar?type=peer)
 [![Docker Hub Pulls](https://img.shields.io/docker/pulls/wwwthoughtworks/build-your-own-radar.svg)](https://hub.docker.com/r/wwwthoughtworks/build-your-own-radar)
 [![GitHub contributors](https://badgen.net/github/contributors/thoughtworks/build-your-own-radar?color=cyan)](https://github.com/thoughtworks/build-your-own-radar/graphs/contributors)
 [![Prettier-Standard Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://github.com/sheerun/prettier-standard)
@@ -10,19 +8,13 @@
 
 A library that generates an interactive radar, inspired by [thoughtworks.com/radar](http://thoughtworks.com/radar).
 
-## Google Sign-In Platform Library Deprecation Note
-
-Google is deprecating their Sign-In Platform Library, which is used in this project for authentication to use Google Sheets as a data source for creating a Radar, in favour of their new Google Identity Service (GIS) Library. As part of this deprecation, newly created Client IDs and API Keys do not work for authentication. Due to this, new users would not be able to use BYOR to build using Google Sheets on their local/docker setups.
-
-We are working on the migration to using the GIS library. Until it is complete, new local/docker setups would only be able to use BYOR with [CSV](#using-csv-data) or [JSON](#using-json-data) files. Existing users should be able to continue using their keys to create Radars using Google Sheets. Additionally, we have hosted the app on https://radar.thoughtworks.com, where Google Sheets as a data source will still work.
-
 ## Demo
 
 You can see this in action at https://radar.thoughtworks.com. If you plug in [this data](https://docs.google.com/spreadsheets/d/1GBX3-jzlGkiKpYHF9RvVtu6GxSrco5OYTBv9YsOTXVg/edit#gid=0) you'll see [this visualization](https://radar.thoughtworks.com/?sheetId=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1GBX3-jzlGkiKpYHF9RvVtu6GxSrco5OYTBv9YsOTXVg%2Fedit%23gid%3D0).
 
 ## How To Use
 
-The easiest way to use the app out of the box is to provide a _public_ Google Sheet ID from which all the data will be fetched. You can enter that ID into the input field, sign in to Google using the prompt and your radar will be generated. The data must conform to the format below for the radar to be generated correctly.
+The easiest way to use the app out of the box is to provide a _public_ Google Sheet ID from which all the data will be fetched. You can enter that ID into the input field and your radar will be generated once you click the submit button. The data must conform to the format below for the radar to be generated correctly.
 
 ### Setting up your data
 
@@ -37,13 +29,30 @@ Create a Google Sheet. Give it at least the below column headers, and put in the
 | Apache Kylin  | assess | platforms              | TRUE  | Apache Kylin is an open source analytics solution ...   |
 | JSF           | hold   | languages & frameworks | FALSE | We continue to see teams run into trouble using JSF ... |
 
+### Want to show blip movement information?
+
+If you want to show movement of blips, add the optional column `status` to your dataset.
+
+This column accepts the following case-insensitive values :
+
+- `New` - appearing on the radar for the first time
+- `Moved In` - moving towards the center of the radar
+- `Moved Out` - moving towards the edge of the radar
+- `No Change` - no change in position
+
 ### Sharing the sheet
 
-- In Google sheets, go to 'File', choose 'Publish to the web...' and then click 'Publish'.
-- Close the 'Publish to the web' dialog.
-- Copy the URL of your editable sheet from the browser (Don't worry, this does not share the editable version).
+- In Google Sheets, click on "Share".
+- On the pop-up that appears, set the General Access as "Anyone with the link" and add "Viewer" permission.
+- Use the URL link of the sheet.
 
 The URL will be similar to [https://docs.google.com/spreadsheets/d/1waDG0_W3-yNiAaUfxcZhTKvl7AUCgXwQw8mdPjCz86U/edit](https://docs.google.com/spreadsheets/d/1waDG0_W3-yNiAaUfxcZhTKvl7AUCgXwQw8mdPjCz86U/edit). In theory we are only interested in the part between '/d/' and '/edit' but you can use the whole URL if you want.
+
+### Using private Google Sheet
+
+When using a private Google Sheet as your input, you will be prompted with a Google One Tap Login popup. Once you have logged in with the appropriate Google Account and authorized our app to access the sheet, the Radar will be generated.
+
+The input data format for the private sheet is the same as a public Google Sheet.
 
 ### Using CSV data
 
@@ -116,23 +125,26 @@ Paste the URL in the input field on the home page.
 
 That's it!
 
-**_Note:_** The quadrants of the radar, and the order of the rings inside the radar will be drawn in the order they appear in your data.
+**_Note:_** When using the BYOR app on [radar.thoughtworks.com](https://radar.thoughtworks.com), the ring and quadrant names should be among the values mentioned in the [example above](#setting-up-your-data). This holds good for Google Sheet, CSV or JSON inputs.
+For a self hosted BYOR app, there is no such condition on the names. Instructions to specify custom names are in the [next section](#more-complex-usage).
 
-Check [this page](https://www.thoughtworks.com/radar/how-to-byor) for step by step guidance.
+Check [this page](https://www.thoughtworks.com/radar/byor) for step by step guidance.
 
 ### More complex usage
 
-To create the data representation, you can use the Google Sheet [factory](/src/util/factory.js) or CSV, or you can also insert all your data straight into the code.
+To create the data representation, you can use the Google Sheet [factory](/src/util/factory.js) methods or CSV/JSON, or you can also insert all your data straight into the code.
 
-The app uses [Google Sheets APIs](https://developers.google.com/sheets/api/reference/rest) to fetch the data from a Google Sheet or [D3.js](https://d3js.org/) if supplied as CSV, so refer to their documentation for more advanced interaction. The input data is sanitized by whitelisting HTML tags with [sanitize-html](https://github.com/punkave/sanitize-html).
+The app uses [Google Sheets APIs](https://developers.google.com/sheets/api/reference/rest) to fetch the data from a Google Sheet or [D3.js](https://d3js.org/) if supplied as CSV/JSON, so refer to their documentation for more advanced interaction. The input data is sanitized by whitelisting HTML tags with [sanitize-html](https://github.com/punkave/sanitize-html).
 
 The application uses [webpack](https://webpack.github.io/) to package dependencies and minify all .js and .scss files.
 
-By default, there is no distinction between both public and private Google Sheets as we now require authentication from Google (using OAuth Client ID and optionally, API Key), per Google's updated documentation. OAuth Client ID and API Key can be obtained from your Google developer console.
+Google OAuth Client ID and API Key can be obtained from your Google Developer Console. OAuth Client ID is mandatory for private Google Sheets, as it is needed for Google Authentication and Authorization of our app.
 
 ```
 export CLIENT_ID=[Google Client ID]
 ```
+
+**_Note:_** Make sure to set the "Authorized JavaScript origins" field for the Client ID to the right origin domain, with port, where the app is hosted. Examples: `http://localhost:8080` or `https://radar.thoughtworks.com`.
 
 Optionally, API Key can be set to bypass Google Authentication for public sheets.
 
@@ -146,15 +158,33 @@ To enable Google Tag Manager, add the following environment variable.
 export GTM_ID=[GTM ID]
 ```
 
+To enable Adobe Launch, add the following environment variable.
+
+```
+export ADOBE_LAUNCH_SCRIPT_URL=[Adobe Launch URL]
+```
+
+To specify custom ring and/or quadrant names, add the following environment variables with the desired values.
+
+```
+export RINGS='["Adopt", "Trial", "Assess", "Hold"]'
+export QUADRANTS='["Techniques", "Platforms", "Tools", "Languages & Frameworks"]'
+```
+
 ## Docker Image
 
 We have released BYOR as a docker image for our users. The image is available in our [DockerHub Repo](https://hub.docker.com/r/wwwthoughtworks/build-your-own-radar/). To pull and run the image, run the following commands.
 
 ```
 $ docker pull wwwthoughtworks/build-your-own-radar
-$ docker run --rm -p 8080:80 -e CLIENT_ID="[Google Client ID]" wwwthoughtworks/build-your-own-radar
+$ docker run --rm -p 8080:80 -e CLIENT_ID="[Google Client ID]" wwwthoughtworks/build-your-own-radar:latest
 $ open http://localhost:8080
 ```
+
+**_Notes:_**
+
+- The other environment variables mentioned in the previous section can be used with `docker run` as well.
+- Docker images for all the [releases](https://github.com/thoughtworks/build-your-own-radar/releases) are available with their respective tags (eg: `wwwthoughtworks/build-your-own-radar:v1.0.0`).
 
 ### Advanced option - Docker image with a CSV/JSON file from the host machine
 
@@ -165,7 +195,7 @@ You can check your setup by clicking on "Build my radar" and by loading the `csv
 
 ```
 $ docker pull wwwthoughtworks/build-your-own-radar
-$ docker run --rm -p 8080:80 -e SERVER_NAMES="localhost 127.0.0.1" -v /mnt/radar/files/:/opt/build-your-own-radar/files wwwthoughtworks/build-your-own-radar
+$ docker run --rm -p 8080:80 -e SERVER_NAMES="localhost 127.0.0.1" -v /mnt/radar/files/:/opt/build-your-own-radar/files wwwthoughtworks/build-your-own-radar:latest
 $ open http://localhost:8080
 ```
 
@@ -173,12 +203,12 @@ This will:
 
 - Spawn a server that will listen locally on port 8080.
 - Mount the host volume on `/mnt/radar/files/` into the container on `/opt/build-your-own-radar/files/`.
-- Open http://localhost:8080 and for the URL enter: http://localhost:8080/files/${NAME_OF_YOUR_FILE}.${EXTENSION_OF_YOUR_FILE[csv/json]}. It needs to be a csv/json file.
+- Open http://localhost:8080 and for the URL enter: `http://localhost:8080/files/<NAME_OF_YOUR_FILE>.<EXTENSION_OF_YOUR_FILE[csv/json]>`. It needs to be a csv/json file.
 
 You can now work locally on your machine, updating the csv/json file and render the result back on your browser.
 There is a sample csv and json file placed in `spec/end_to_end_tests/resources/localfiles/` for reference.
 
-**_Note:_**
+**_Notes:_**
 
 - If API Key is also available, same can be provided to the `docker run` command as `-e API_KEY=[Google API Key]`.
 - For setting the `publicPath` in the webpack config while using this image, the path can be passed as an environment variable called `ASSET_PATH`.
@@ -188,38 +218,35 @@ There is a sample csv and json file placed in `spec/end_to_end_tests/resources/l
 All tasks are defined in `package.json`.
 
 Pull requests are welcome; please write tests whenever possible.
-Make sure you have nodejs installed.
+Make sure you have nodejs installed. You can run `nvm use` to use the version used by this repo.
 
 - `git clone git@github.com:thoughtworks/build-your-own-radar.git`
 - `npm install`
-- `npm run quality` - to run your tests
+- `npm run quality` - to run the linter and the unit tests
 - `npm run dev` - to run application in localhost:8080. This will watch the .js and .css files and rebuild on file changes
 
 ## End to End Tests
 
-To run End to End tests in headless mode
+To run End to End tests, start the dev server and follow the required steps below:
 
-- add a new environment variable 'TEST_URL' and set it to 'http://localhost:8080/'
-- add a new environment variable 'TEST_ENV' and set it to 'development' or 'production'
-- `npm run test:e2e`
+- To run in headless mode:
 
-To run End to End tests in debug mode
+  - add a new environment variable `TEST_URL` and set it to 'http://localhost:8080'
+  - `npm run test:e2e-headless`
 
-- add a new environment variable 'TEST_URL' and set it to 'http://localhost:8080/'
-- add a new environment variable 'TEST_ENV' and set it to 'development' or 'production'
-- `npm run start`
-- Click on 'Run all specs' in cypress window
+- To run in debug mode:
+  - add a new environment variable `TEST_URL` and set it to 'http://localhost:8080'
+  - `npm run e2e`
+  - Select 'E2E Testing' and choose the browser
+  - Click on the spec to run it's tests
 
-**_Note:_** Currently, end to end tests are not working, as the flow requires Google login via prompt, which Cypress does not support. We are working to find some alternative solution for this.
+**_Notes:_**
+
+- Currently, end to end tests are not supported for private Google Sheets, as it requires interacting with the Google One Tap popup.
+- To run end to end tests for public Google Sheets, the `CLIENT_ID` and `API_KEY` environment variables need to set as well (steps details [here](#more-complex-usage)), to provide Cypress with an authenticated session (without having to interact with Google's auth popups).
 
 ### Don't want to install node? Run with one line docker
 
-     $ docker run -p 8080:8080 -v $PWD:/app -w /app -it node:10.15.3 /bin/sh -c 'npm install && npm run dev'
+     $ docker run -p 8080:8080 -v $PWD:/app -w /app -it node:18 /bin/sh -c 'npm install && npm run dev'
 
-**_Note:_** If you are facing Node-sass compile error while running, please prefix the command `npm rebuild node-sass` before `npm run dev`. like this
-
-```
-npm install && npm rebuild node-sass && npm run dev
-```
-
-After building it will start on `localhost:8080`
+After building it will start on `localhost:8080`.

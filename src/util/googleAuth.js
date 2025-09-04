@@ -19,25 +19,32 @@ const GoogleAuth = function () {
   self.isLoggedIn = undefined
   self.userEmail = ''
   let tokenClient
-  let gapiInited = false
-  let gsiInited = false
+  self.gapiInitiated = false
+  self.gsiInitiated = false
 
-  self.loadGoogle = function (forceLogin = false, callback) {
-    self.loadedCallback = callback
-    self.forceLogin = forceLogin
-    const content = d3.select('body')
+  self.loadAuthAPI = function () {
+    !self.gapiInitiated &&
+      self.content.append('script').attr('src', 'https://apis.google.com/js/api.js').on('load', self.handleClientLoad)
+  }
 
-    if (!self.forceLogin) {
-      content.append('script').attr('src', 'https://apis.google.com/js/api.js').on('load', self.handleClientLoad)
-
-      content
+  self.loadGSI = function () {
+    !self.gsiInitiated &&
+      self.content
         .append('script')
         .attr('src', 'https://accounts.google.com/gsi/client')
         .on('load', function () {
           self.gsiLogin()
         })
+  }
+
+  self.loadGoogle = function (forceLogin = false, callback) {
+    self.loadedCallback = callback
+    self.forceLogin = forceLogin
+    self.content = d3.select('body')
+
+    if (!self.forceLogin) {
+      self.loadAuthAPI()
     } else {
-      self.handleClientLoad()
       self.gsiLogin(forceLogin)
     }
   }
@@ -72,7 +79,7 @@ const GoogleAuth = function () {
       hint: self.forceLogin ? '' : jwToken?.email,
     })
 
-    gsiInited = true
+    self.gsiInitiated = true
     self.prompt()
   }
 
@@ -85,10 +92,30 @@ const GoogleAuth = function () {
       cancel_on_tap_outside: false,
     })
     if (!self.forceLogin) {
-      window.google.accounts.id.prompt()
+      window.google.accounts.id.prompt((notification) => {
+        if (notification.isSkippedMoment()) {
+          plotAuthenticationErrorMessage()
+        }
+      })
     } else {
-      self.gsiCallback()
+      await self.gsiCallback()
     }
+  }
+  function plotAuthenticationErrorMessage() {
+    let homePageURL = window.location.protocol + '//' + window.location.hostname
+    homePageURL += window.location.port === '' ? '' : ':' + window.location.port
+    const message = `<strong>Oops!</strong> Authentication incomplete. Please try again.`
+    const goBack = '<a href=' + homePageURL + '>Go back</a>'
+    document.cookie = 'g_state=; path=/; max-age=0'
+    d3.selectAll('.loader-text').remove()
+    let content = d3.select('body').select('.error-container').append('div').attr('class', 'input-sheet')
+    const errorContainer = content.append('div').attr('class', 'error-container__message')
+    errorContainer.append('div').append('p').attr('class', 'error-title').html(message)
+    errorContainer
+      .append('div')
+      .append('p')
+      .attr('class', 'error-subtitle')
+      .html(`<strong> ${goBack} and please login.</strong>`)
   }
 
   self.handleClientLoad = function () {
@@ -103,7 +130,7 @@ const GoogleAuth = function () {
   }
 
   self.prompt = async function () {
-    if (gsiInited && gapiInited) {
+    if (self.gsiInitiated && self.gapiInitiated) {
       const token = gapi.client.getToken()
       if (token && token.access_token && !self.forceLogin) {
         const options = { method: 'GET', headers: { authorization: `Bearer ${token.access_token}` } }
@@ -129,8 +156,8 @@ const GoogleAuth = function () {
         scope: SCOPES,
       })
       .then(() => {
-        gapiInited = true
-        self.prompt()
+        self.gapiInitiated = true
+        self.loadedCallback()
       })
   }
 
